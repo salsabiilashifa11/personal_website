@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .gradient-underline {
+    background: linear-gradient(90deg, #4285F4, #EA4335, #FBBC04, #34A853);
+    height: 4px;
+    border-radius: 2px;
+  }
+
+  .card-lift {
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+  }
+  .card-lift:hover {
+    box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.05);
+    transform: translateY(-2px);
+  }
+  .dark .card-lift:hover {
+    box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.5), 0 4px 6px -2px rgb(0 0 0 / 0.3);
+  }
+}
