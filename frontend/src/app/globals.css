@@ -2,9 +2,62 @@
 @tailwind components;
 @tailwind utilities;
 
+
+@keyframes chip-enter {
+  from { opacity: 0; transform: translateY(10px) scale(0.92); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+
+@keyframes chip-float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-5px); }
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  /* Interest chip color variants — hover fills the chip */
+  .chip-blue {
+    color: #4285F4; border-color: #4285F4;
+    background: rgb(66 133 244 / 0.08);
+    transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+  }
+  .chip-blue:hover {
+    background: #4285F4; color: #fff;
+    box-shadow: 0 0 16px rgb(66 133 244 / 0.45);
+    transform: translateY(-2px) scale(1.05);
+  }
+  .chip-red {
+    color: #EA4335; border-color: #EA4335;
+    background: rgb(234 67 53 / 0.08);
+    transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+  }
+  .chip-red:hover {
+    background: #EA4335; color: #fff;
+    box-shadow: 0 0 16px rgb(234 67 53 / 0.45);
+    transform: translateY(-2px) scale(1.05);
+  }
+  .chip-yellow {
+    color: #FBBC04; border-color: #FBBC04;
+    background: rgb(251 188 4 / 0.08);
+    transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+  }
+  .chip-yellow:hover {
+    background: #FBBC04; color: #1a1a1a;
+    box-shadow: 0 0 16px rgb(251 188 4 / 0.45);
+    transform: translateY(-2px) scale(1.05);
+  }
+  .chip-green {
+    color: #34A853; border-color: #34A853;
+    background: rgb(52 168 83 / 0.08);
+    transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+  }
+  .chip-green:hover {
+    background: #34A853; color: #fff;
+    box-shadow: 0 0 16px rgb(52 168 83 / 0.45);
+    transform: translateY(-2px) scale(1.05);
   }
 
   .gradient-underline {

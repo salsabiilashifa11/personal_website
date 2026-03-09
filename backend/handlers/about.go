@@ -20,8 +20,9 @@ func GetAbout(c *gin.Context) {
 
 func UpdateAbout(c *gin.Context) {
 	var body struct {
-		Content string `json:"content"`
-		Tagline string `json:"tagline"`
+		Content   string `json:"content"`
+		Tagline   string `json:"tagline"`
+		Interests string `json:"interests"`
 	}
 	if err := c.ShouldBindJSON(&body); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -33,6 +34,7 @@ func UpdateAbout(c *gin.Context) {
 	about.ID = 1
 	about.Content = body.Content
 	about.Tagline = body.Tagline
+	about.Interests = body.Interests
 	database.DB.Save(&about)
 
 	c.JSON(http.StatusOK, about)

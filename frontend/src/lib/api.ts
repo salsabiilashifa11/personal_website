@@ -3,7 +3,8 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
 export interface About {
   id: number;
   content: string;
-  tagline: string; // newline-separated list of rotating items
+  tagline: string;    // newline-separated list of rotating items
+  interests: string;  // newline-separated list of interests
 }
 
 export interface Experience {
@@ -35,6 +36,36 @@ export interface Book {
   created_at: string;
 }
 
+export interface Recommendation {
+  id: number;
+  title: string;
+  author: string;
+  note: string;
+  from: string;
+  created_at: string;
+}
+
+export interface DrummingMedia {
+  id: number;
+  url: string;
+  media_type: "photo" | "video";
+  caption: string;
+  order: number;
+  created_at: string;
+}
+
+export interface Movie {
+  id: number;
+  title: string;
+  year: string;
+  director: string;
+  genre: string;
+  description: string;
+  poster_url: string;
+  order: number;
+  created_at: string;
+}
+
 export interface BooksGrouped {
   reading: Book[];
   read: Book[];
@@ -61,6 +92,8 @@ export const getAbout = () => fetchJSON<About>("/about");
 export const getExperiences = () => fetchJSON<Experience[]>("/experiences");
 export const getWritings = () => fetchJSON<Writing[]>("/writings");
 export const getBooks = () => fetchJSON<BooksGrouped>("/books");
+export const getDrummingMedia = () => fetchJSON<DrummingMedia[]>("/drumming");
+export const getMovies = () => fetchJSON<Movie[]>("/movies");
 
 // Admin helpers
 function adminHeaders(password: string) {
@@ -85,11 +118,11 @@ export async function uploadFile(password: string, file: File): Promise<string> 
   return data.url.startsWith("http") ? data.url : `${base}${data.url}`;
 }
 
-export const updateAbout = (password: string, content: string, tagline: string) =>
+export const updateAbout = (password: string, content: string, tagline: string, interests: string) =>
   fetchJSON<About>("/about", {
     method: "PUT",
     headers: adminHeaders(password),
-    body: JSON.stringify({ content, tagline }),
+    body: JSON.stringify({ content, tagline, interests }),
   });
 
 export const createExperience = (password: string, data: Omit<Experience, "id">) =>
@@ -148,6 +181,63 @@ export const updateBook = (password: string, id: number, data: Partial<Book>) =>
 
 export const deleteBook = (password: string, id: number) =>
   fetchJSON<{ message: string }>(`/books/${id}`, {
+    method: "DELETE",
+    headers: adminHeaders(password),
+  });
+
+export const createRecommendation = (data: { title: string; author: string; note: string; from: string }) =>
+  fetchJSON<Recommendation>("/recommendations", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+
+export const getRecommendations = (password: string) =>
+  fetchJSON<Recommendation[]>("/recommendations", {
+    headers: adminHeaders(password),
+  });
+
+export const deleteRecommendation = (password: string, id: number) =>
+  fetchJSON<{ message: string }>(`/recommendations/${id}`, {
+    method: "DELETE",
+    headers: adminHeaders(password),
+  });
+
+export const createDrummingMedia = (password: string, data: { url: string; media_type: string; caption: string; order: number }) =>
+  fetchJSON<DrummingMedia>("/drumming", {
+    method: "POST",
+    headers: adminHeaders(password),
+    body: JSON.stringify(data),
+  });
+
+export const updateDrummingMedia = (password: string, id: number, data: Partial<DrummingMedia>) =>
+  fetchJSON<DrummingMedia>(`/drumming/${id}`, {
+    method: "PUT",
+    headers: adminHeaders(password),
+    body: JSON.stringify(data),
+  });
+
+export const deleteDrummingMedia = (password: string, id: number) =>
+  fetchJSON<{ message: string }>(`/drumming/${id}`, {
+    method: "DELETE",
+    headers: adminHeaders(password),
+  });
+
+export const createMovie = (password: string, data: { title: string; year: string; director: string; genre: string; description: string; poster_url: string; order: number }) =>
+  fetchJSON<Movie>("/movies", {
+    method: "POST",
+    headers: adminHeaders(password),
+    body: JSON.stringify(data),
+  });
+
+export const updateMovie = (password: string, id: number, data: Partial<Movie>) =>
+  fetchJSON<Movie>(`/movies/${id}`, {
+    method: "PUT",
+    headers: adminHeaders(password),
+    body: JSON.stringify(data),
+  });
+
+export const deleteMovie = (password: string, id: number) =>
+  fetchJSON<{ message: string }>(`/movies/${id}`, {
     method: "DELETE",
     headers: adminHeaders(password),
   });

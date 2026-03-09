@@ -1,5 +1,8 @@
+"use client";
+
 import { Experience } from "@/lib/api";
 import Image from "next/image";
+import { useState } from "react";
 
 const accentStyles = {
   blue: "border-l-google-blue",
@@ -17,7 +20,7 @@ function OrgLogo({ logoUrl, name }: { logoUrl: string; name: string }) {
   if (logoUrl) {
     return (
       <div className="relative w-10 h-10 shrink-0 rounded-lg overflow-hidden border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800">
-        <Image src={logoUrl} alt={name} fill className="object-contain p-1" unoptimized />
+        <Image src={logoUrl} alt={name} fill className="object-cover" unoptimized />
       </div>
     );
   }
@@ -25,6 +28,40 @@ function OrgLogo({ logoUrl, name }: { logoUrl: string; name: string }) {
   return (
     <div className="w-10 h-10 shrink-0 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center">
       <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 leading-none">{initials}</span>
+    </div>
+  );
+}
+
+const PREVIEW_COUNT = 2;
+
+function Description({ text }: { text: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const bullets = text.split("\n").map(l => l.trim()).filter(Boolean);
+
+  if (bullets.length <= 1) {
+    return <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{text}</p>;
+  }
+
+  const visible = expanded ? bullets : bullets.slice(0, PREVIEW_COUNT);
+
+  return (
+    <div>
+      <ul className="space-y-1">
+        {visible.map((b, i) => (
+          <li key={i} className="flex gap-2 text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+            <span className="mt-1.5 w-1 h-1 rounded-full bg-gray-400 dark:bg-gray-500 shrink-0" />
+            <span>{b}</span>
+          </li>
+        ))}
+      </ul>
+      {bullets.length > PREVIEW_COUNT && (
+        <button
+          onClick={() => setExpanded(v => !v)}
+          className="mt-1.5 font-mono text-[11px] text-google-blue hover:underline"
+        >
+          {expanded ? "show less" : `+${bullets.length - PREVIEW_COUNT} more`}
+        </button>
+      )}
     </div>
   );
 }
@@ -42,9 +79,7 @@ export default function ExperienceCard({ experience, accentColor = "blue" }: Pro
             </span>
           </div>
           <p className="font-mono text-xs text-gray-500 dark:text-gray-400 mb-2">{experience.organization}</p>
-          {experience.description && (
-            <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{experience.description}</p>
-          )}
+          {experience.description && <Description text={experience.description} />}
         </div>
       </div>
     </div>

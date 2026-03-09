@@ -8,9 +8,15 @@ import { useTheme } from "next-themes";
 const links = [
   { label: "Home",     href: "/",        color: "text-google-blue",   activeBar: "bg-google-blue" },
   { label: "Writings", href: "/writings", color: "text-google-red",    activeBar: "bg-google-red" },
-  { label: "Reading",  href: "/reading",  color: "text-google-yellow", activeBar: "bg-google-yellow" },
+  { label: "Bookshelf",  href: "/reading",  color: "text-google-yellow", activeBar: "bg-google-yellow" },
   { label: "Admin",    href: "/admin",    color: "text-google-green",  activeBar: "bg-google-green" },
 ];
+
+const secretLinks = [
+  { label: "Drumming", href: "/drumming", icon: "drum" },
+  { label: "Watchlist", href: "/movies",   icon: "film" },
+];
+
 
 function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
@@ -44,6 +50,11 @@ function ThemeToggle() {
 export default function Navbar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const { resolvedTheme } = useTheme();
+  useEffect(() => setMounted(true), []);
+
+  const isDark = mounted && resolvedTheme === "dark";
 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -75,6 +86,30 @@ export default function Navbar() {
                   </Link>
                 );
               })}
+
+              {isDark && (
+                <>
+                  <span className="mx-1 text-gray-700 select-none text-xs">|</span>
+                  {secretLinks.map((link) => {
+                    const active = isActive(link.href);
+                    return (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        title="secret page"
+                        className={`relative px-3 py-5 text-sm font-medium italic transition-colors ${
+                          active
+                            ? "text-purple-300"
+                            : "text-purple-400 hover:text-purple-300"
+                        }`}
+                      >
+                        {link.label}
+                        {active && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-400" />}
+                      </Link>
+                    );
+                  })}
+                </>
+              )}
             </nav>
             <div className="ml-2 pl-2 border-l border-gray-200 dark:border-gray-700">
               <ThemeToggle />
@@ -121,6 +156,29 @@ export default function Navbar() {
               </Link>
             );
           })}
+
+          {isDark && (
+            <>
+              <div className="mx-6 my-1 border-t border-dashed border-purple-900/50" />
+              {secretLinks.map((link) => {
+                const active = isActive(link.href);
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setOpen(false)}
+                    className={`flex items-center gap-2 px-6 py-4 text-sm font-medium italic border-l-4 transition-colors ${
+                      active
+                        ? "text-purple-300 border-purple-400 bg-gray-900"
+                        : "text-purple-400 border-transparent hover:bg-gray-900 hover:text-purple-300"
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                );
+              })}
+            </>
+          )}
         </div>
       )}
     </header>

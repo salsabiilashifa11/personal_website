@@ -26,8 +26,12 @@ func main() {
 	r := gin.Default()
 
 	// CORS
+	allowOrigins := []string{"http://localhost:3000", "https://shifasalsabiila.com", "https://www.shifasalsabiila.com"}
+	if extra := os.Getenv("CORS_ORIGINS"); extra != "" {
+		allowOrigins = append(allowOrigins, extra)
+	}
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000", "https://shifa.me"},
+		AllowOrigins:     allowOrigins,
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "X-Admin-Password"},
 		ExposeHeaders:    []string{"Content-Length"},
@@ -44,6 +48,9 @@ func main() {
 		api.GET("/experiences", handlers.GetExperiences)
 		api.GET("/writings", handlers.GetWritings)
 		api.GET("/books", handlers.GetBooks)
+		api.POST("/recommendations", handlers.CreateRecommendation)
+		api.GET("/drumming", handlers.GetDrummingMedia)
+		api.GET("/movies", handlers.GetMovies)
 
 		// Admin routes
 		admin := api.Group("/")
@@ -64,6 +71,17 @@ func main() {
 			admin.DELETE("/books/:id", handlers.DeleteBook)
 
 			admin.POST("/upload", handlers.UploadFile)
+
+			admin.GET("/recommendations", handlers.GetRecommendations)
+			admin.DELETE("/recommendations/:id", handlers.DeleteRecommendation)
+
+			admin.POST("/drumming", handlers.CreateDrummingMedia)
+			admin.PUT("/drumming/:id", handlers.UpdateDrummingMedia)
+			admin.DELETE("/drumming/:id", handlers.DeleteDrummingMedia)
+
+			admin.POST("/movies", handlers.CreateMovie)
+			admin.PUT("/movies/:id", handlers.UpdateMovie)
+			admin.DELETE("/movies/:id", handlers.DeleteMovie)
 		}
 	}
 

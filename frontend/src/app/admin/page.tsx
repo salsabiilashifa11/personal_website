@@ -6,16 +6,22 @@ import {
   getExperiences, createExperience, updateExperience, deleteExperience,
   getWritings, createWriting, updateWriting, deleteWriting,
   getBooks, createBook, updateBook, deleteBook, uploadFile,
-  Experience, Writing, Book,
+  getRecommendations, deleteRecommendation,
+  getDrummingMedia, createDrummingMedia, updateDrummingMedia, deleteDrummingMedia,
+  getMovies, createMovie, updateMovie, deleteMovie,
+  Experience, Writing, Book, Recommendation, DrummingMedia, Movie,
 } from "@/lib/api";
 
-type Tab = "about" | "experiences" | "writings" | "books";
+type Tab = "about" | "experiences" | "writings" | "books" | "recs" | "drumming" | "movies";
 
 const TAB_META: Record<Tab, { label: string; active: string; indicator: string }> = {
-  about:       { label: "About",       active: "text-google-blue border-google-blue",   indicator: "bg-google-blue" },
-  experiences: { label: "Experiences", active: "text-google-red border-google-red",     indicator: "bg-google-red" },
+  about:       { label: "About",       active: "text-google-blue border-google-blue",     indicator: "bg-google-blue" },
+  experiences: { label: "Experiences", active: "text-google-red border-google-red",       indicator: "bg-google-red" },
   writings:    { label: "Writings",    active: "text-google-yellow border-google-yellow", indicator: "bg-google-yellow" },
-  books:       { label: "Books",       active: "text-google-green border-google-green",  indicator: "bg-google-green" },
+  books:       { label: "Books",       active: "text-google-green border-google-green",   indicator: "bg-google-green" },
+  recs:        { label: "Recs",        active: "text-google-blue border-google-blue",     indicator: "bg-google-blue" },
+  drumming:    { label: "🔒 Drumming", active: "text-purple-500 border-purple-500",       indicator: "bg-purple-500" },
+  movies:      { label: "🔒 Watchlist", active: "text-purple-500 border-purple-500",       indicator: "bg-purple-500" },
 };
 
 // ── Shared input styles ──────────────────────────────
@@ -104,16 +110,21 @@ function PasswordGate({ onAuth }: { onAuth: (pw: string) => void }) {
 function AboutTab({ password }: { password: string }) {
   const [content, setContent] = useState("");
   const [tagline, setTagline] = useState("");
+  const [interests, setInterests] = useState("");
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
 
   useEffect(() => {
-    getAbout().then((a) => { setContent(a.content); setTagline(a.tagline ?? ""); }).catch(() => {});
+    getAbout().then((a) => {
+      setContent(a.content);
+      setTagline(a.tagline ?? "");
+      setInterests(a.interests ?? "");
+    }).catch(() => {});
   }, []);
 
   const save = async () => {
     setSaving(true); setMsg("");
-    try { await updateAbout(password, content, tagline); setMsg("Saved!"); }
+    try { await updateAbout(password, content, tagline, interests); setMsg("Saved!"); }
     catch { setMsg("Error saving — check password."); }
     finally { setSaving(false); }
   };
@@ -146,6 +157,20 @@ function AboutTab({ password }: { password: string }) {
           <Msg text={msg} />
         </div>
       </FormCard>
+
+      <FormCard title="Interests" color="text-google-blue">
+        <p className="text-xs text-gray-400 mb-3">One interest per line — shown as colored chips on the home page.</p>
+        <textarea
+          className={`${textareaCls} h-32 mb-4 font-mono`}
+          value={interests}
+          onChange={(e) => setInterests(e.target.value)}
+          placeholder={"machine learning\nsystems design\nphotography\nhiking"}
+        />
+        <div className="flex items-center gap-3">
+          <Btn color="blue" onClick={save} disabled={saving}>{saving ? "Saving…" : "Save"}</Btn>
+          <Msg text={msg} />
+        </div>
+      </FormCard>
     </div>
   );
 }
@@ -158,9 +183,21 @@ function ExperiencesTab({ password }: { password: string }) {
   const [form, setForm] = useState<Omit<Experience, "id">>(EMPTY_EXP);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [msg, setMsg] = useState("");
+  const [uploading, setUploading] = useState(false);
 
   const load = useCallback(async () => { setList(await getExperiences().catch(() => [])); }, []);
   useEffect(() => { load(); }, [load]);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true); setMsg("");
+    try {
+      const url = await uploadFile(password, file);
+      setForm((f) => ({ ...f, logo_url: url }));
+    } catch { setMsg("Upload failed — check password."); }
+    finally { setUploading(false); e.target.value = ""; }
+  };
 
   const submit = async () => {
     setMsg("");
@@ -184,7 +221,29 @@ function ExperiencesTab({ password }: { password: string }) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
           <input className={inputCls} placeholder="Title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
           <input className={inputCls} placeholder="Organization" value={form.organization} onChange={(e) => setForm({ ...form, organization: e.target.value })} />
-          <input className={`${inputCls} col-span-full`} placeholder="Logo URL (optional)" value={form.logo_url} onChange={(e) => setForm({ ...form, logo_url: e.target.value })} />
+          {/* Logo — URL or file upload */}
+          <div className="col-span-full space-y-2">
+            <div className="flex gap-2 items-center">
+              <input
+                className={`${inputCls} flex-1`}
+                placeholder="Logo URL (optional)"
+                value={form.logo_url}
+                onChange={(e) => setForm({ ...form, logo_url: e.target.value })}
+              />
+              <span className="text-xs text-gray-400 shrink-0">or</span>
+              <label className={`shrink-0 cursor-pointer rounded-lg px-3 py-2 text-sm font-medium border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition ${uploading ? "opacity-50 pointer-events-none" : ""}`}>
+                {uploading ? "Uploading…" : "Upload file"}
+                <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} disabled={uploading} />
+              </label>
+            </div>
+            {form.logo_url && (
+              <div className="flex items-center gap-2">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={form.logo_url} alt="Logo preview" className="w-10 h-10 object-contain rounded-lg border border-gray-200 bg-white p-1" />
+                <button className="text-xs text-gray-400 hover:text-google-red transition" onClick={() => setForm({ ...form, logo_url: "" })}>Remove</button>
+              </div>
+            )}
+          </div>
           <select className={selectCls} value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value as "professional" | "education" })}>
             <option value="professional">Professional</option>
             <option value="education">Education</option>
@@ -398,8 +457,268 @@ function BooksTab({ password }: { password: string }) {
   );
 }
 
+// ── Recs tab ─────────────────────────────────────────
+function RecsTab({ password }: { password: string }) {
+  const [list, setList] = useState<Recommendation[]>([]);
+  const [msg, setMsg] = useState("");
+
+  const load = useCallback(async () => { setList(await getRecommendations(password).catch(() => [])); }, [password]);
+  useEffect(() => { load(); }, [load]);
+
+  const remove = async (id: number) => {
+    if (!confirm("Dismiss this recommendation?")) return;
+    try { await deleteRecommendation(password, id); load(); } catch { setMsg("Error deleting."); }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <p className="font-mono text-xs text-gray-400">{list.length} recommendation{list.length !== 1 ? "s" : ""} received</p>
+        <Msg text={msg} />
+      </div>
+      {list.length === 0 ? (
+        <p className="text-sm text-gray-400 italic">No recommendations yet.</p>
+      ) : (
+        <div className="space-y-2">
+          {list.map((rec) => (
+            <ItemRow key={rec.id}
+              left={<>
+                <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{rec.title}</p>
+                {rec.author && <p className="font-mono text-xs text-gray-500">by {rec.author}</p>}
+                {rec.note && <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 italic">&ldquo;{rec.note}&rdquo;</p>}
+                <p className="font-mono text-[10px] text-gray-400 mt-1">
+                  {rec.from ? `from ${rec.from}` : "anonymous"} · {new Date(rec.created_at).toLocaleDateString()}
+                </p>
+              </>}
+              right={<Btn color="red" variant="ghost" onClick={() => remove(rec.id)}>Dismiss</Btn>}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Drumming tab ─────────────────────────────────────
+const EMPTY_MEDIA = { url: "", media_type: "photo" as "photo" | "video", caption: "", order: 0 };
+
+function DrummingTab({ password }: { password: string }) {
+  const [list, setList] = useState<DrummingMedia[]>([]);
+  const [form, setForm] = useState<{ url: string; media_type: "photo" | "video"; caption: string; order: number }>(EMPTY_MEDIA);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [msg, setMsg] = useState("");
+  const [uploading, setUploading] = useState(false);
+
+  const load = useCallback(async () => { setList(await getDrummingMedia().catch(() => [])); }, []);
+  useEffect(() => { load(); }, [load]);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true); setMsg("");
+    try {
+      const url = await uploadFile(password, file);
+      setForm((f) => ({ ...f, url, media_type: file.type.startsWith("video") ? "video" : "photo" }));
+    } catch { setMsg("Upload failed — check password."); }
+    finally { setUploading(false); e.target.value = ""; }
+  };
+
+  const submit = async () => {
+    setMsg("");
+    try {
+      if (editingId !== null) await updateDrummingMedia(password, editingId, form);
+      else await createDrummingMedia(password, form);
+      setForm(EMPTY_MEDIA); setEditingId(null); load();
+      setMsg(editingId !== null ? "Updated!" : "Added!");
+    } catch { setMsg("Error — check password."); }
+  };
+
+  const startEdit = (item: DrummingMedia) => {
+    const { id, created_at, ...rest } = item; void created_at;
+    setEditingId(id); setForm(rest);
+  };
+  const remove = async (id: number) => {
+    if (!confirm("Delete this media?")) return;
+    try { await deleteDrummingMedia(password, id); load(); } catch { setMsg("Error deleting."); }
+  };
+
+  return (
+    <div className="space-y-6">
+      <FormCard title={editingId ? "Edit Media" : "Add Media"} color="text-purple-500">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+          <div className="col-span-full space-y-2">
+            <div className="flex gap-2 items-center">
+              <input
+                className={`${inputCls} flex-1`}
+                placeholder="URL (photo or YouTube link)"
+                value={form.url}
+                onChange={(e) => setForm({ ...form, url: e.target.value })}
+              />
+              <span className="text-xs text-gray-400 shrink-0">or</span>
+              <label className={`shrink-0 cursor-pointer rounded-lg px-3 py-2 text-sm font-medium border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition ${uploading ? "opacity-50 pointer-events-none" : ""}`}>
+                {uploading ? "Uploading…" : "Upload file"}
+                <input type="file" accept="image/*,video/*" className="hidden" onChange={handleFileChange} disabled={uploading} />
+              </label>
+            </div>
+            {form.url && (
+              <div className="flex items-center gap-2">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                {form.media_type === "photo" && <img src={form.url} alt="preview" className="w-12 h-12 object-cover rounded border border-gray-200" />}
+                <button className="text-xs text-gray-400 hover:text-google-red transition" onClick={() => setForm({ ...form, url: "" })}>Remove</button>
+              </div>
+            )}
+          </div>
+          <select className={selectCls} value={form.media_type} onChange={(e) => setForm({ ...form, media_type: e.target.value as "photo" | "video" })}>
+            <option value="photo">Photo</option>
+            <option value="video">Video</option>
+          </select>
+          <input className={inputCls} type="number" placeholder="Order" value={form.order} onChange={(e) => setForm({ ...form, order: Number(e.target.value) })} />
+          <input className={`${inputCls} col-span-full sm:col-span-2`} placeholder="Caption (optional)" value={form.caption} onChange={(e) => setForm({ ...form, caption: e.target.value })} />
+        </div>
+        <div className="flex items-center gap-3">
+          <button onClick={submit} className="rounded-lg px-4 py-2 text-sm font-medium transition bg-purple-600 text-white hover:opacity-90">
+            {editingId ? "Update" : "Add"}
+          </button>
+          {editingId && (
+            <button onClick={() => { setEditingId(null); setForm(EMPTY_MEDIA); }} className="rounded-lg px-4 py-2 text-sm font-medium transition text-purple-500 hover:bg-purple-950/30">
+              Cancel
+            </button>
+          )}
+          <Msg text={msg} />
+        </div>
+      </FormCard>
+
+      <div className="space-y-2">
+        {list.map((item) => (
+          <ItemRow key={item.id}
+            left={<>
+              <span className="inline-block font-mono text-[10px] text-purple-400 bg-purple-950/40 px-1.5 py-0.5 rounded mb-1">{item.media_type}</span>
+              <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate max-w-xs">{item.url}</p>
+              {item.caption && <p className="font-mono text-xs text-gray-500 italic">{item.caption}</p>}
+            </>}
+            right={<>
+              <Btn color="blue" variant="ghost" onClick={() => startEdit(item)}>Edit</Btn>
+              <Btn color="red" variant="ghost" onClick={() => remove(item.id)}>Delete</Btn>
+            </>}
+          />
+        ))}
+        {list.length === 0 && <p className="text-sm text-gray-400 italic">No media yet.</p>}
+      </div>
+    </div>
+  );
+}
+
+// ── Movies tab ────────────────────────────────────────
+const EMPTY_MOVIE = { title: "", year: "", director: "", genre: "", description: "", poster_url: "", order: 0 };
+
+function MoviesTab({ password }: { password: string }) {
+  const [list, setList] = useState<Movie[]>([]);
+  const [form, setForm] = useState(EMPTY_MOVIE);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [msg, setMsg] = useState("");
+  const [uploading, setUploading] = useState(false);
+
+  const load = useCallback(async () => { setList(await getMovies().catch(() => [])); }, []);
+  useEffect(() => { load(); }, [load]);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true); setMsg("");
+    try {
+      const url = await uploadFile(password, file);
+      setForm((f) => ({ ...f, poster_url: url }));
+    } catch { setMsg("Upload failed — check password."); }
+    finally { setUploading(false); e.target.value = ""; }
+  };
+
+  const submit = async () => {
+    setMsg("");
+    try {
+      if (editingId !== null) await updateMovie(password, editingId, form);
+      else await createMovie(password, form);
+      setForm(EMPTY_MOVIE); setEditingId(null); load();
+      setMsg(editingId !== null ? "Updated!" : "Added!");
+    } catch { setMsg("Error — check password."); }
+  };
+
+  const startEdit = (m: Movie) => {
+    const { id, created_at, ...rest } = m; void created_at;
+    setEditingId(id); setForm(rest);
+  };
+  const remove = async (id: number) => {
+    if (!confirm("Delete this movie?")) return;
+    try { await deleteMovie(password, id); load(); } catch { setMsg("Error deleting."); }
+  };
+
+  return (
+    <div className="space-y-6">
+      <FormCard title={editingId ? "Edit Movie" : "Add Movie"} color="text-purple-500">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+          <input className={inputCls} placeholder="Title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+          <input className={inputCls} placeholder="Year" value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })} />
+          <input className={inputCls} placeholder="Director" value={form.director} onChange={(e) => setForm({ ...form, director: e.target.value })} />
+          <input className={inputCls} placeholder="Genre" value={form.genre} onChange={(e) => setForm({ ...form, genre: e.target.value })} />
+          <div className="col-span-full space-y-2">
+            <div className="flex gap-2 items-center">
+              <input
+                className={`${inputCls} flex-1`}
+                placeholder="Poster image URL (optional)"
+                value={form.poster_url}
+                onChange={(e) => setForm({ ...form, poster_url: e.target.value })}
+              />
+              <span className="text-xs text-gray-400 shrink-0">or</span>
+              <label className={`shrink-0 cursor-pointer rounded-lg px-3 py-2 text-sm font-medium border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition ${uploading ? "opacity-50 pointer-events-none" : ""}`}>
+                {uploading ? "Uploading…" : "Upload file"}
+                <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} disabled={uploading} />
+              </label>
+            </div>
+            {form.poster_url && (
+              <div className="flex items-center gap-2">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={form.poster_url} alt="Poster preview" className="w-10 h-14 object-cover rounded border border-gray-200" />
+                <button className="text-xs text-gray-400 hover:text-google-red transition" onClick={() => setForm({ ...form, poster_url: "" })}>Remove</button>
+              </div>
+            )}
+          </div>
+          <textarea className={`${textareaCls} col-span-full h-20`} placeholder="Why you should watch it…" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+          <input className={inputCls} type="number" placeholder="Order" value={form.order} onChange={(e) => setForm({ ...form, order: Number(e.target.value) })} />
+        </div>
+        <div className="flex items-center gap-3">
+          <button onClick={submit} className="rounded-lg px-4 py-2 text-sm font-medium transition bg-purple-600 text-white hover:opacity-90">
+            {editingId ? "Update" : "Add"}
+          </button>
+          {editingId && (
+            <button onClick={() => { setEditingId(null); setForm(EMPTY_MOVIE); }} className="rounded-lg px-4 py-2 text-sm font-medium transition text-purple-500 hover:bg-purple-950/30">
+              Cancel
+            </button>
+          )}
+          <Msg text={msg} />
+        </div>
+      </FormCard>
+
+      <div className="space-y-2">
+        {list.map((m) => (
+          <ItemRow key={m.id}
+            left={<>
+              {m.genre && <span className="inline-block font-mono text-[10px] text-purple-400 bg-purple-950/40 px-1.5 py-0.5 rounded mb-1">{m.genre}</span>}
+              <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{m.title} {m.year && <span className="text-gray-400 font-normal">({m.year})</span>}</p>
+              {m.director && <p className="font-mono text-xs text-gray-500">dir. {m.director}</p>}
+            </>}
+            right={<>
+              <Btn color="blue" variant="ghost" onClick={() => startEdit(m)}>Edit</Btn>
+              <Btn color="red" variant="ghost" onClick={() => remove(m.id)}>Delete</Btn>
+            </>}
+          />
+        ))}
+        {list.length === 0 && <p className="text-sm text-gray-400 italic">No movies yet.</p>}
+      </div>
+    </div>
+  );
+}
+
 // ── Main admin page ──────────────────────────────────
-const TABS: Tab[] = ["about", "experiences", "writings", "books"];
+const TABS: Tab[] = ["about", "experiences", "writings", "books", "recs", "drumming", "movies"];
 
 export default function AdminPage() {
   const [password, setPassword] = useState<string | null>(null);
@@ -454,6 +773,9 @@ export default function AdminPage() {
         {activeTab === "experiences" && <ExperiencesTab password={password} />}
         {activeTab === "writings" && <WritingsTab password={password} />}
         {activeTab === "books" && <BooksTab password={password} />}
+        {activeTab === "recs" && <RecsTab password={password} />}
+        {activeTab === "drumming" && <DrummingTab password={password} />}
+        {activeTab === "movies" && <MoviesTab password={password} />}
       </div>
     </div>
   );

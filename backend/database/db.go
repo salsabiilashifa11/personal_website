@@ -22,6 +22,9 @@ func Init(dbPath string) {
 		&models.Experience{},
 		&models.Writing{},
 		&models.Book{},
+		&models.Recommendation{},
+		&models.DrummingMedia{},
+		&models.Movie{},
 	)
 	if err != nil {
 		log.Fatalf("Failed to migrate database: %v", err)

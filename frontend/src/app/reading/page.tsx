@@ -1,4 +1,5 @@
 import BookCard from "@/components/BookCard";
+import RecommendationDrawer from "@/components/RecommendationDrawer";
 import { getBooks, BooksGrouped } from "@/lib/api";
 
 export const revalidate = 60;
@@ -17,7 +18,8 @@ export default async function ReadingPage() {
       <header className="mb-10">
         <p className="font-mono text-xs text-google-yellow tracking-widest uppercase mb-2">Books</p>
         <h1 className="font-pixel text-xl text-gray-900 dark:text-gray-100">Reading List</h1>
-        <div className="w-12 h-1 bg-google-yellow rounded mt-3" />
+        <div className="w-12 h-1 bg-google-yellow rounded mt-3 mb-6" />
+        <RecommendationDrawer />
       </header>
 
       {sections.map(({ key, label, sublabel, color, dot }) => {
