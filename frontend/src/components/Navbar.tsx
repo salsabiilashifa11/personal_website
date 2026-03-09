@@ -6,10 +6,9 @@ import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 
 const links = [
-  { label: "Home",     href: "/",        color: "text-google-blue",   activeBar: "bg-google-blue" },
-  { label: "Writings", href: "/writings", color: "text-google-red",    activeBar: "bg-google-red" },
-  { label: "Bookshelf",  href: "/reading",  color: "text-google-yellow", activeBar: "bg-google-yellow" },
-  { label: "Admin",    href: "/admin",    color: "text-google-green",  activeBar: "bg-google-green" },
+  { label: "Home",      href: "/",        color: "text-google-blue",   activeBar: "bg-google-blue" },
+  { label: "Writings",  href: "/writings", color: "text-google-red",    activeBar: "bg-google-red" },
+  { label: "Bookshelf", href: "/reading",  color: "text-google-yellow", activeBar: "bg-google-yellow" },
 ];
 
 const secretLinks = [

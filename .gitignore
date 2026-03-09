@@ -1,4 +1,5 @@
 backend/*.db
+.env.deploy
 backend/uploads/
 backend/.env
 frontend/.env.local
