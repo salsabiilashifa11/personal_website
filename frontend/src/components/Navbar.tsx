@@ -12,8 +12,7 @@ const links = [
 ];
 
 const secretLinks = [
-  { label: "Drumming", href: "/drumming", icon: "drum" },
-  { label: "Watchlist", href: "/movies",   icon: "film" },
+  { label: "Watchlist", href: "/movies", icon: "film" },
 ];
 
 
@@ -64,7 +63,7 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="font-pixel text-[11px] text-gray-900 dark:text-gray-100 hover:text-google-blue transition-colors">
-            shifa.
+            shifa salsabiila.
           </Link>
 
           {/* Desktop nav */}

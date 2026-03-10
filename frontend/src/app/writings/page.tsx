@@ -17,7 +17,7 @@ export default async function WritingsPage() {
       {writings.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <p className="font-pixel text-[10px] text-gray-300 dark:text-gray-600 mb-3">...</p>
-          <p className="text-sm text-gray-400">No writings yet — coming soon.</p>
+          <p className="text-sm text-gray-400">Migrating writings — coming soon.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
