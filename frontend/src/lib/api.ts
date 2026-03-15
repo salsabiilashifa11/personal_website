@@ -72,6 +72,23 @@ export interface BooksGrouped {
   will_read: Book[];
 }
 
+export interface Paper {
+  id: number;
+  title: string;
+  authors: string;
+  venue: string;
+  year: string;
+  url: string;
+  status: "read" | "reading" | "will_read";
+  created_at: string;
+}
+
+export interface PapersGrouped {
+  reading: Paper[];
+  read: Paper[];
+  will_read: Paper[];
+}
+
 async function fetchJSON<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
     ...options,
@@ -92,6 +109,7 @@ export const getAbout = () => fetchJSON<About>("/about");
 export const getExperiences = () => fetchJSON<Experience[]>("/experiences");
 export const getWritings = () => fetchJSON<Writing[]>("/writings");
 export const getBooks = () => fetchJSON<BooksGrouped>("/books");
+export const getPapers = () => fetchJSON<PapersGrouped>("/papers");
 export const getDrummingMedia = () => fetchJSON<DrummingMedia[]>("/drumming");
 export const getMovies = () => fetchJSON<Movie[]>("/movies");
 
@@ -181,6 +199,26 @@ export const updateBook = (password: string, id: number, data: Partial<Book>) =>
 
 export const deleteBook = (password: string, id: number) =>
   fetchJSON<{ message: string }>(`/books/${id}`, {
+    method: "DELETE",
+    headers: adminHeaders(password),
+  });
+
+export const createPaper = (password: string, data: { title: string; authors: string; venue: string; year: string; url: string; status: string }) =>
+  fetchJSON<Paper>("/papers", {
+    method: "POST",
+    headers: adminHeaders(password),
+    body: JSON.stringify(data),
+  });
+
+export const updatePaper = (password: string, id: number, data: Partial<Paper>) =>
+  fetchJSON<Paper>(`/papers/${id}`, {
+    method: "PUT",
+    headers: adminHeaders(password),
+    body: JSON.stringify(data),
+  });
+
+export const deletePaper = (password: string, id: number) =>
+  fetchJSON<{ message: string }>(`/papers/${id}`, {
     method: "DELETE",
     headers: adminHeaders(password),
   });

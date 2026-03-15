@@ -9,16 +9,18 @@ import {
   getRecommendations, deleteRecommendation,
   getDrummingMedia, createDrummingMedia, updateDrummingMedia, deleteDrummingMedia,
   getMovies, createMovie, updateMovie, deleteMovie,
-  Experience, Writing, Book, Recommendation, DrummingMedia, Movie,
+  getPapers, createPaper, updatePaper, deletePaper,
+  Experience, Writing, Book, Recommendation, DrummingMedia, Movie, Paper,
 } from "@/lib/api";
 
-type Tab = "about" | "experiences" | "writings" | "books" | "recs" | "drumming" | "movies";
+type Tab = "about" | "experiences" | "writings" | "books" | "papers" | "recs" | "drumming" | "movies";
 
 const TAB_META: Record<Tab, { label: string; active: string; indicator: string }> = {
   about:       { label: "About",       active: "text-google-blue border-google-blue",     indicator: "bg-google-blue" },
   experiences: { label: "Experiences", active: "text-google-red border-google-red",       indicator: "bg-google-red" },
   writings:    { label: "Writings",    active: "text-google-yellow border-google-yellow", indicator: "bg-google-yellow" },
   books:       { label: "Books",       active: "text-google-green border-google-green",   indicator: "bg-google-green" },
+  papers:      { label: "Papers",      active: "text-google-blue border-google-blue",     indicator: "bg-google-blue" },
   recs:        { label: "Recs",        active: "text-google-blue border-google-blue",     indicator: "bg-google-blue" },
   drumming:    { label: "🔒 Drumming", active: "text-purple-500 border-purple-500",       indicator: "bg-purple-500" },
   movies:      { label: "🔒 Watchlist", active: "text-purple-500 border-purple-500",       indicator: "bg-purple-500" },
@@ -457,6 +459,85 @@ function BooksTab({ password }: { password: string }) {
   );
 }
 
+// ── Papers tab ───────────────────────────────────────
+const EMPTY_PAPER = { title: "", authors: "", venue: "", year: "", url: "", status: "will_read" as "read" | "reading" | "will_read" };
+
+function PapersTab({ password }: { password: string }) {
+  const [list, setList] = useState<Paper[]>([]);
+  const [form, setForm] = useState(EMPTY_PAPER);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [msg, setMsg] = useState("");
+
+  const load = useCallback(async () => {
+    const d = await getPapers().catch(() => ({ reading: [], read: [], will_read: [] }));
+    setList([...d.reading, ...d.read, ...d.will_read]);
+  }, []);
+  useEffect(() => { load(); }, [load]);
+
+  const submit = async () => {
+    setMsg("");
+    try {
+      if (editingId !== null) await updatePaper(password, editingId, form);
+      else await createPaper(password, form);
+      setForm(EMPTY_PAPER); setEditingId(null); load();
+      setMsg(editingId !== null ? "Updated!" : "Created!");
+    } catch { setMsg("Error — check password."); }
+  };
+
+  const startEdit = (p: Paper) => {
+    setEditingId(p.id);
+    setForm({ title: p.title, authors: p.authors, venue: p.venue, year: p.year, url: p.url, status: p.status });
+  };
+  const remove = async (id: number) => {
+    if (!confirm("Delete this paper?")) return;
+    try { await deletePaper(password, id); load(); } catch { setMsg("Error deleting."); }
+  };
+
+  const statusColors: Record<string, string> = { reading: "text-google-blue bg-blue-50", read: "text-google-green bg-green-50", will_read: "text-gray-500 bg-gray-100" };
+
+  return (
+    <div className="space-y-6">
+      <FormCard title={editingId ? "Edit Paper" : "Add Paper"} color="text-google-blue">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+          <input className={`${inputCls} col-span-full sm:col-span-2`} placeholder="Title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+          <input className={`${inputCls} col-span-full sm:col-span-2`} placeholder="Authors (e.g. Vaswani et al.)" value={form.authors} onChange={(e) => setForm({ ...form, authors: e.target.value })} />
+          <input className={inputCls} placeholder="Venue (e.g. NeurIPS, arXiv)" value={form.venue} onChange={(e) => setForm({ ...form, venue: e.target.value })} />
+          <input className={inputCls} placeholder="Year (e.g. 2024)" value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })} />
+          <input className={`${inputCls} col-span-full sm:col-span-2`} placeholder="URL (arXiv / DOI link)" value={form.url} onChange={(e) => setForm({ ...form, url: e.target.value })} />
+          <select className={selectCls} value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as "read" | "reading" | "will_read" })}>
+            <option value="will_read">Will Read</option>
+            <option value="reading">Reading</option>
+            <option value="read">Read</option>
+          </select>
+        </div>
+        <div className="flex items-center gap-3">
+          <Btn color="blue" onClick={submit}>{editingId ? "Update" : "Add"}</Btn>
+          {editingId && <Btn color="blue" variant="ghost" onClick={() => { setEditingId(null); setForm(EMPTY_PAPER); }}>Cancel</Btn>}
+          <Msg text={msg} />
+        </div>
+      </FormCard>
+
+      <div className="space-y-2">
+        {list.map((p) => (
+          <ItemRow key={p.id}
+            left={<>
+              <span className={`inline-block font-mono text-[10px] px-1.5 py-0.5 rounded mb-1 ${statusColors[p.status] ?? ""}`}>{p.status}</span>
+              <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{p.title}</p>
+              {p.authors && <p className="font-mono text-xs text-gray-500">{p.authors}</p>}
+              {(p.venue || p.year) && <p className="font-mono text-xs text-gray-400">{[p.venue, p.year].filter(Boolean).join(" · ")}</p>}
+            </>}
+            right={<>
+              <Btn color="blue" variant="ghost" onClick={() => startEdit(p)}>Edit</Btn>
+              <Btn color="red" variant="ghost" onClick={() => remove(p.id)}>Delete</Btn>
+            </>}
+          />
+        ))}
+        {list.length === 0 && <p className="text-sm text-gray-400 italic">No papers yet.</p>}
+      </div>
+    </div>
+  );
+}
+
 // ── Recs tab ─────────────────────────────────────────
 function RecsTab({ password }: { password: string }) {
   const [list, setList] = useState<Recommendation[]>([]);
@@ -718,7 +799,7 @@ function MoviesTab({ password }: { password: string }) {
 }
 
 // ── Main admin page ──────────────────────────────────
-const TABS: Tab[] = ["about", "experiences", "writings", "books", "recs", "drumming", "movies"];
+const TABS: Tab[] = ["about", "experiences", "writings", "books", "papers", "recs", "drumming", "movies"];
 
 export default function AdminPage() {
   const [password, setPassword] = useState<string | null>(null);
@@ -773,6 +854,7 @@ export default function AdminPage() {
         {activeTab === "experiences" && <ExperiencesTab password={password} />}
         {activeTab === "writings" && <WritingsTab password={password} />}
         {activeTab === "books" && <BooksTab password={password} />}
+        {activeTab === "papers" && <PapersTab password={password} />}
         {activeTab === "recs" && <RecsTab password={password} />}
         {activeTab === "drumming" && <DrummingTab password={password} />}
         {activeTab === "movies" && <MoviesTab password={password} />}

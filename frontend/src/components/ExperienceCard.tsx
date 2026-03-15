@@ -68,7 +68,7 @@ function Description({ text }: { text: string }) {
 
 export default function ExperienceCard({ experience, accentColor = "blue" }: Props) {
   return (
-    <div className={`bg-white dark:bg-[#1C1C1E] rounded-lg p-4 border border-gray-100 dark:border-gray-800 border-l-4 ${accentStyles[accentColor]} card-lift shadow-card`}>
+    <div className={`bg-white dark:bg-[#1C1C1E] rounded-lg p-6 border border-gray-100 dark:border-gray-800 border-l-4 ${accentStyles[accentColor]} card-lift shadow-card`}>
       <div className="flex items-start gap-3">
         <OrgLogo logoUrl={experience.logo_url} name={experience.organization} />
         <div className="min-w-0 flex-1">

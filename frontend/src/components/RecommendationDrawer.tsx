@@ -29,15 +29,14 @@ export default function RecommendationDrawer() {
       {/* Trigger button */}
       <button
         onClick={() => { setOpen((v) => !v); if (status === "done") setStatus("idle"); }}
-        className={`group flex items-center gap-2.5 px-5 py-2.5 rounded-full font-mono text-sm font-medium transition-all duration-200 ${
+        className={`flex items-center gap-2 px-4 py-2 border border-black rounded font-mono text-sm font-bold transition-all duration-150 ${
           open
-            ? "bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900"
-            : "bg-google-yellow text-gray-900 hover:brightness-95 shadow-md hover:shadow-lg hover:-translate-y-0.5"
+            ? "bg-gray-900 text-white shadow-none translate-x-[3px] translate-y-[3px]"
+            : "bg-google-yellow text-gray-900 shadow-[3px_3px_0px_#000] hover:shadow-none hover:translate-x-[3px] hover:translate-y-[3px]"
         }`}
       >
-        <span className="text-base leading-none">📚</span>
-        <span>{open ? "Never mind ↑" : "Got a book rec for me?"}</span>
-        <span className={`ml-1 transition-transform duration-300 ${open ? "rotate-180" : ""}`}>↓</span>
+        <span>{open ? "Never mind" : "Got a book rec for me?"}</span>
+        <span>{open ? "↑" : "↓"}</span>
       </button>
 
       {/* Collapsible form */}

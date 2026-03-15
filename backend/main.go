@@ -51,6 +51,7 @@ func main() {
 		api.POST("/recommendations", handlers.CreateRecommendation)
 		api.GET("/drumming", handlers.GetDrummingMedia)
 		api.GET("/movies", handlers.GetMovies)
+		api.GET("/papers", handlers.GetPapers)
 
 		// Admin routes
 		admin := api.Group("/")
@@ -82,6 +83,10 @@ func main() {
 			admin.POST("/movies", handlers.CreateMovie)
 			admin.PUT("/movies/:id", handlers.UpdateMovie)
 			admin.DELETE("/movies/:id", handlers.DeleteMovie)
+
+			admin.POST("/papers", handlers.CreatePaper)
+			admin.PUT("/papers/:id", handlers.UpdatePaper)
+			admin.DELETE("/papers/:id", handlers.DeletePaper)
 		}
 	}
 

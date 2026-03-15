@@ -25,6 +25,7 @@ func Init(dbPath string) {
 		&models.Recommendation{},
 		&models.DrummingMedia{},
 		&models.Movie{},
+		&models.Paper{},
 	)
 	if err != nil {
 		log.Fatalf("Failed to migrate database: %v", err)

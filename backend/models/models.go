@@ -52,6 +52,18 @@ type Book struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
+// Paper — research paper
+type Paper struct {
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	Title     string    `json:"title"`
+	Authors   string    `json:"authors"`
+	Venue     string    `json:"venue"`    // conference/journal name
+	Year      string    `json:"year"`
+	URL       string    `json:"url"`      // arxiv/DOI link
+	Status    string    `json:"status"`   // "read" | "reading" | "will_read"
+	CreatedAt time.Time `json:"created_at"`
+}
+
 // DrummingMedia — photos/videos for the masonry collage
 type DrummingMedia struct {
 	ID        uint      `gorm:"primaryKey" json:"id"`
