@@ -101,7 +101,9 @@ export default function Navbar() {
                             : "text-purple-400 hover:text-purple-300"
                         }`}
                       >
-                        {link.label}
+                        <span className="bg-purple-900/50 border border-purple-800/60 rounded px-2 py-0.5">
+                          {link.label}
+                        </span>
                         {active && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-400" />}
                       </Link>
                     );

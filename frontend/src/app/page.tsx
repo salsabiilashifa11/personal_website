@@ -159,7 +159,7 @@ function ContentBlock({ content }: { content: string }) {
               <div className="flex items-center gap-1.5">
                 <span
                   className="font-pixel text-[9px] text-google-green border border-google-green px-1.5 py-0.5 overflow-hidden whitespace-nowrap inline-block"
-                  style={{ width: 0, animation: 'secret-typing 1.2s steps(14, end) forwards' }}
+                  style={{ width: 0, animation: 'secret-typing-14 1.2s steps(14, end) forwards' }}
                 >
                   [ BONUS LORE ]
                 </span>

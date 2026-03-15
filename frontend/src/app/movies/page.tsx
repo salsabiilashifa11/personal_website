@@ -92,18 +92,36 @@ export default function MoviesPage() {
     <div className="space-y-10">
       {/* Header */}
       <section className="pt-4">
-        <div className="flex items-center gap-3 mb-3">
-          <span className="font-mono text-xs text-purple-400/70 tracking-widest uppercase">secret page</span>
-          <span className="px-2 py-0.5 rounded-full border border-purple-800 text-purple-400 font-mono text-[10px]">dark only</span>
+        <div className="flex items-center gap-1.5 mb-3">
+          <span
+            className="font-pixel text-[9px] text-purple-400 border border-purple-400 px-1.5 py-0.5 overflow-hidden whitespace-nowrap inline-block"
+            style={{ width: 0, animation: 'secret-typing-17 1.2s steps(17, end) forwards' }}
+          >
+            [ OFF THE CLOCK ]
+          </span>
+          <span
+            className="font-pixel text-[9px] text-purple-400"
+            style={{ opacity: 0, animation: 'secret-blink 0.8s step-end 1.2s infinite' }}
+          >
+            █
+          </span>
         </div>
-        <h1 className="font-pixel text-xl sm:text-2xl text-purple-300 leading-snug mb-4">Watchlist</h1>
-        <div className="flex gap-1.5 mb-4">
+        <h1
+          className="font-pixel text-xl sm:text-2xl text-purple-300 leading-snug mb-4"
+          style={{ opacity: 0, animation: 'secret-reveal 0.6s ease 1.6s forwards' }}
+        >
+          Watchlist
+        </h1>
+        <div className="flex gap-1.5 mb-4" style={{ opacity: 0, animation: 'secret-reveal 0.6s ease 1.9s forwards' }}>
           <span className="w-2.5 h-2.5 rounded-sm bg-purple-700" />
           <span className="w-2.5 h-2.5 rounded-sm bg-purple-600" />
           <span className="w-2.5 h-2.5 rounded-sm bg-purple-500" />
           <span className="w-2.5 h-2.5 rounded-sm bg-purple-400" />
         </div>
-        <p className="font-mono text-sm text-gray-400 max-w-xl leading-relaxed">
+        <p
+          className="font-mono text-sm text-gray-400 max-w-xl leading-relaxed"
+          style={{ opacity: 0, animation: 'secret-reveal 0.6s ease 2.1s forwards' }}
+        >
           films and shows i think are worth your time. heavily biased, obviously.
         </p>
       </section>
