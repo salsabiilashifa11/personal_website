@@ -119,19 +119,26 @@ export default function WritingRenderer({ content }: Props) {
     hr: () => (
       <hr className="my-10 border-none h-px bg-gradient-to-r from-transparent via-gray-200 dark:via-gray-700 to-transparent" />
     ),
-    img: ({ src, alt }) => (
-      <button
-        type="button"
-        onClick={() => setLightbox({ src: src ?? "", alt: alt ?? "" })}
-        className="block w-full my-6 cursor-zoom-in focus:outline-none group"
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={src}
-          alt={alt ?? ""}
-          className="rounded-lg border border-gray-100 dark:border-gray-800 shadow-card w-full transition-opacity group-hover:opacity-90"
-        />
-      </button>
+    img: ({ src, alt, title }) => (
+      <figure className="my-6">
+        <button
+          type="button"
+          onClick={() => setLightbox({ src: src ?? "", alt: alt ?? "" })}
+          className="block w-full cursor-zoom-in focus:outline-none group"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={src}
+            alt={alt ?? ""}
+            className="rounded-lg border border-gray-100 dark:border-gray-800 shadow-card w-full transition-opacity group-hover:opacity-90"
+          />
+        </button>
+        {title && (
+          <figcaption className="mt-2 text-center font-mono text-[11px] text-gray-400 dark:text-gray-500 italic">
+            {title}
+          </figcaption>
+        )}
+      </figure>
     ),
     table: ({ children }) => (
       <div className="overflow-x-auto my-6">
