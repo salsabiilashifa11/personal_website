@@ -14,7 +14,7 @@ echo "==> Building backend..."
 ssh "$SERVER" "cd $APP_DIR/backend && CGO_ENABLED=1 /usr/local/go/bin/go build -o server ."
 
 echo "==> Building frontend..."
-ssh "$SERVER" "cd $APP_DIR/frontend && npm ci && NODE_OPTIONS=--max_old_space_size=512 npm run build && cp -r .next/static .next/standalone/.next/static"
+ssh "$SERVER" "cd $APP_DIR/frontend && npm ci && NODE_OPTIONS=--max_old_space_size=512 npm run build && cp -r .next/static .next/standalone/.next/static && cp -r public .next/standalone/public"
 
 echo "==> Restarting services..."
 ssh "$SERVER" "systemctl restart personal-website-backend personal-website-frontend"

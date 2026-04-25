@@ -5,6 +5,46 @@ import remarkGfm from "remark-gfm";
 import type { Components } from "react-markdown";
 import React, { useState, useEffect, useCallback } from "react";
 
+interface LiComponentProps {
+  children?: React.ReactNode;
+  index?: number;
+}
+
+function OlComponent({ children }: { children?: React.ReactNode }) {
+  let i = 0;
+  const numbered = React.Children.map(children, (child) => {
+    if (!React.isValidElement(child)) return child;
+    i++;
+    return React.cloneElement(child as React.ReactElement<LiComponentProps>, { index: i });
+  });
+  return (
+    <ol className="font-sans text-[15px] leading-[1.75] text-gray-700 dark:text-gray-300 mb-6 space-y-2 list-none pl-4">
+      {numbered}
+    </ol>
+  );
+}
+
+function UlComponent({ children }: { children?: React.ReactNode }) {
+  return (
+    <ul className="font-sans text-[15px] leading-[1.75] text-gray-700 dark:text-gray-300 mb-6 space-y-2 list-none pl-4">
+      {children}
+    </ul>
+  );
+}
+
+function LiComponent({ children, index }: LiComponentProps) {
+  return (
+    <li className="flex gap-3 items-start">
+      {index !== undefined ? (
+        <span className="font-mono text-[13px] text-google-blue shrink-0 mt-0.5 min-w-[1.2rem]">{index}.</span>
+      ) : (
+        <span className="text-google-red font-pixel text-[8px] mt-[7px] shrink-0">▸</span>
+      )}
+      <span>{children}</span>
+    </li>
+  );
+}
+
 interface Props {
   content: string;
 }
@@ -73,24 +113,9 @@ export default function WritingRenderer({ content }: Props) {
         </div>
       </blockquote>
     ),
-    ul: ({ children }) => (
-      <ul className="font-sans text-[15px] leading-[1.75] text-gray-700 dark:text-gray-300 mb-6 space-y-2 list-none pl-4">
-        {children}
-      </ul>
-    ),
-    ol: ({ children }) => (
-      <ol className="font-sans text-[15px] leading-[1.75] text-gray-700 dark:text-gray-300 mb-6 space-y-2 list-none pl-4 counter-reset-[item]">
-        {children}
-      </ol>
-    ),
-    li: ({ children }) => {
-      return (
-        <li className="flex gap-3 items-start">
-          <span className="text-google-red font-pixel text-[8px] mt-[7px] shrink-0">▸</span>
-          <span>{children}</span>
-        </li>
-      );
-    },
+    ul: UlComponent,
+    ol: OlComponent,
+    li: LiComponent,
     hr: () => (
       <hr className="my-10 border-none h-px bg-gradient-to-r from-transparent via-gray-200 dark:via-gray-700 to-transparent" />
     ),

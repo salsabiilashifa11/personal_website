@@ -18,8 +18,8 @@ interface Props {
 }
 
 function OrgLogo({ logoUrl, name, large }: { logoUrl: string; name: string; large?: boolean }) {
-  const size = large ? "w-14 h-14" : "w-10 h-10";
-  const radius = large ? "rounded-xl" : "rounded-lg";
+  const size = large ? "w-10 h-10 sm:w-14 sm:h-14" : "w-10 h-10";
+  const radius = large ? "rounded-lg sm:rounded-xl" : "rounded-lg";
   const textSize = large ? "text-sm" : "text-[10px]";
 
   if (logoUrl) {

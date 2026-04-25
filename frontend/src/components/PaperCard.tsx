@@ -32,7 +32,7 @@ export default function PaperCard({ paper }: Props) {
 
   if (paper.url) {
     return (
-      <a href={paper.url} target="_blank" rel="noopener noreferrer">
+      <a href={paper.url} target="_blank" rel="noopener noreferrer" className="block">
         {inner}
       </a>
     );

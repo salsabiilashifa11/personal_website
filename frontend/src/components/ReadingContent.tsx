@@ -59,7 +59,7 @@ export default function ReadingContent({ books, papers }: Props) {
                 {books[key].map((book) => <BookCard key={book.id} book={book} />)}
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {papers[key].map((paper) => <PaperCard key={paper.id} paper={paper} />)}
               </div>
             )}
