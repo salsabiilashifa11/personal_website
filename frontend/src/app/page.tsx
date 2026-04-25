@@ -67,9 +67,11 @@ export default async function HomePage() {
 
         {/* Right: illustration */}
         <div className="hidden md:flex items-center justify-center">
-          <img
+          <Image
             src="/images/hero_illustration.svg"
             alt="Hero illustration"
+            width={384}
+            height={384}
             className="w-full max-w-sm aspect-square object-contain opacity-90 dark:[filter:invert(1)_hue-rotate(180deg)]"
           />
         </div>
