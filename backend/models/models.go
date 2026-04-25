@@ -27,9 +27,21 @@ type Experience struct {
 type Writing struct {
 	ID          uint      `gorm:"primaryKey" json:"id"`
 	Title       string    `json:"title"`
-	MediumURL   string    `json:"medium_url"`
+	Content     string    `gorm:"type:text" json:"content"`   // Markdown body (internal)
+	MediumURL   string    `json:"medium_url"`                  // optional external link
+	CoverImage  string    `json:"cover_image"`                 // optional cover image URL
+	Likes       int       `json:"likes"`
 	PublishedAt time.Time `json:"published_at"`
 	CreatedAt   time.Time `json:"created_at"`
+}
+
+// WritingComment — submitted by visitors on a writing
+type WritingComment struct {
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	WritingID uint      `gorm:"index;not null" json:"writing_id"`
+	Name      string    `json:"name"`
+	Content   string    `gorm:"type:text" json:"content"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 // Recommendation — submitted by visitors

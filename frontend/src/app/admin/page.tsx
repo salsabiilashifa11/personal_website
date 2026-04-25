@@ -1,16 +1,18 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import WritingRenderer from "@/components/WritingRenderer";
 import {
   getAbout, updateAbout,
   getExperiences, createExperience, updateExperience, deleteExperience,
   getWritings, createWriting, updateWriting, deleteWriting,
+  getComments, deleteComment,
   getBooks, createBook, updateBook, deleteBook, uploadFile,
   getRecommendations, deleteRecommendation,
   getDrummingMedia, createDrummingMedia, updateDrummingMedia, deleteDrummingMedia,
   getMovies, createMovie, updateMovie, deleteMovie,
   getPapers, createPaper, updatePaper, deletePaper,
-  Experience, Writing, Book, Recommendation, DrummingMedia, Movie, Paper,
+  Experience, Writing, Book, Recommendation, DrummingMedia, Movie, Paper, WritingComment,
 } from "@/lib/api";
 
 type Tab = "about" | "experiences" | "writings" | "books" | "papers" | "recs" | "drumming" | "movies";
@@ -282,12 +284,62 @@ function ExperiencesTab({ password }: { password: string }) {
   );
 }
 
+// ── Comments panel (per writing) ─────────────────────
+function CommentsPanel({ writingId, password }: { writingId: number; password: string }) {
+  const [comments, setComments] = useState<WritingComment[]>([]);
+  const [loaded, setLoaded] = useState(false);
+  const [msg, setMsg] = useState("");
+
+  useEffect(() => {
+    getComments(writingId).then((c) => { setComments(c); setLoaded(true); }).catch(() => setLoaded(true));
+  }, [writingId]);
+
+  const remove = async (id: number) => {
+    if (!confirm("Delete this comment?")) return;
+    try {
+      await deleteComment(password, id);
+      setComments((prev) => prev.filter((c) => c.id !== id));
+    } catch { setMsg("Error deleting comment."); }
+  };
+
+  if (!loaded) return <p className="font-mono text-xs text-gray-400 p-3">Loading…</p>;
+
+  return (
+    <div className="border-t border-gray-100 dark:border-gray-800 px-4 py-3 space-y-2">
+      {msg && <p className="font-mono text-xs text-google-red">{msg}</p>}
+      {comments.length === 0 ? (
+        <p className="font-mono text-xs text-gray-400 italic">No comments.</p>
+      ) : (
+        comments.map((c) => (
+          <div key={c.id} className="flex items-start justify-between gap-3 bg-gray-50 dark:bg-gray-900 rounded px-3 py-2">
+            <div className="min-w-0">
+              <span className="font-pixel text-[9px] text-google-blue mr-2">{c.name}</span>
+              <span className="font-mono text-[10px] text-gray-400">{new Date(c.created_at).toLocaleDateString()}</span>
+              <p className="font-mono text-xs text-gray-700 dark:text-gray-300 mt-1 whitespace-pre-wrap">{c.content}</p>
+            </div>
+            <Btn color="red" variant="ghost" onClick={() => remove(c.id)}>Delete</Btn>
+          </div>
+        ))
+      )}
+    </div>
+  );
+}
+
+// ── Writing preview (thin wrapper for admin) ─────────
+function WritingPreview({ content }: { content: string }) {
+  return <WritingRenderer content={content} />;
+}
+
 // ── Writings tab ─────────────────────────────────────
+const EMPTY_WRITING = { title: "", content: "", medium_url: "", cover_image: "", published_at: "" };
+
 function WritingsTab({ password }: { password: string }) {
   const [list, setList] = useState<Writing[]>([]);
-  const [form, setForm] = useState({ title: "", medium_url: "", published_at: "" });
+  const [form, setForm] = useState(EMPTY_WRITING);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [msg, setMsg] = useState("");
+  const [showPreview, setShowPreview] = useState(false);
+  const [expandedComments, setExpandedComments] = useState<number | null>(null);
 
   const load = useCallback(async () => { setList(await getWritings().catch(() => [])); }, []);
   useEffect(() => { load(); }, [load]);
@@ -297,14 +349,21 @@ function WritingsTab({ password }: { password: string }) {
     try {
       if (editingId !== null) await updateWriting(password, editingId, form);
       else await createWriting(password, form);
-      setForm({ title: "", medium_url: "", published_at: "" }); setEditingId(null); load();
+      setForm(EMPTY_WRITING); setEditingId(null); setShowPreview(false); load();
       setMsg(editingId !== null ? "Updated!" : "Created!");
-    } catch { setMsg("Error — check password."); }
+    } catch (e) { setMsg(`Error: ${e instanceof Error ? e.message : String(e)}`); }
   };
 
   const startEdit = (w: Writing) => {
     setEditingId(w.id);
-    setForm({ title: w.title, medium_url: w.medium_url, published_at: w.published_at ? new Date(w.published_at).toISOString().split("T")[0] : "" });
+    setForm({
+      title: w.title,
+      content: w.content ?? "",
+      medium_url: w.medium_url ?? "",
+      cover_image: w.cover_image ?? "",
+      published_at: w.published_at ? new Date(w.published_at).toISOString().split("T")[0] : "",
+    });
+    setShowPreview(false);
   };
 
   const remove = async (id: number) => {
@@ -314,31 +373,74 @@ function WritingsTab({ password }: { password: string }) {
 
   return (
     <div className="space-y-6">
-      <FormCard title={editingId ? "Edit Writing" : "Add Writing"} color="text-google-yellow">
+      <FormCard title={editingId ? "Edit Writing" : "New Writing"} color="text-google-yellow">
         <div className="grid grid-cols-1 gap-3 mb-4">
-          <input className={inputCls} placeholder="Title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
-          <input className={inputCls} placeholder="Medium URL" value={form.medium_url} onChange={(e) => setForm({ ...form, medium_url: e.target.value })} />
-          <input className={inputCls} type="date" value={form.published_at} onChange={(e) => setForm({ ...form, published_at: e.target.value })} />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <input className={inputCls} placeholder="Title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+            <input className={inputCls} type="date" value={form.published_at} onChange={(e) => setForm({ ...form, published_at: e.target.value })} />
+          </div>
+          <input className={inputCls} placeholder="Medium URL (optional — leave empty for internal writing)" value={form.medium_url} onChange={(e) => setForm({ ...form, medium_url: e.target.value })} />
+          <input className={inputCls} placeholder="Cover image URL (optional)" value={form.cover_image} onChange={(e) => setForm({ ...form, cover_image: e.target.value })} />
+
+          {/* MD editor */}
+          <div className="rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div className="flex items-center justify-between bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-3 py-2">
+              <span className="font-mono text-[10px] text-google-yellow tracking-widest uppercase">Markdown content</span>
+              <button
+                type="button"
+                onClick={() => setShowPreview((v) => !v)}
+                className="font-mono text-[10px] text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+              >
+                {showPreview ? "← Edit" : "Preview →"}
+              </button>
+            </div>
+            {showPreview ? (
+              <div className="bg-white dark:bg-[#1C1C1E] p-5 min-h-[320px] max-h-[600px] overflow-y-auto">
+                {form.content ? (
+                  <WritingPreview content={form.content} />
+                ) : (
+                  <p className="font-mono text-xs text-gray-400 italic">Nothing to preview yet.</p>
+                )}
+              </div>
+            ) : (
+              <textarea
+                className="w-full bg-white dark:bg-[#1C1C1E] px-4 py-3 font-mono text-[12px] text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:outline-none resize-y min-h-[320px]"
+                placeholder={"# My Essay\n\nStart writing in Markdown...\n\n## Section heading\n\nParagraph text with **bold** and *italic*.\n\n```python\nprint('hello world')\n```"}
+                value={form.content}
+                onChange={(e) => setForm({ ...form, content: e.target.value })}
+              />
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-3">
-          <Btn color="yellow" onClick={submit}>{editingId ? "Update" : "Add"}</Btn>
-          {editingId && <Btn color="yellow" variant="ghost" onClick={() => { setEditingId(null); setForm({ title: "", medium_url: "", published_at: "" }); }}>Cancel</Btn>}
+          <Btn color="yellow" onClick={submit}>{editingId ? "Update" : "Publish"}</Btn>
+          {editingId && <Btn color="yellow" variant="ghost" onClick={() => { setEditingId(null); setForm(EMPTY_WRITING); setShowPreview(false); }}>Cancel</Btn>}
           <Msg text={msg} />
         </div>
       </FormCard>
 
       <div className="space-y-2">
         {list.map((w) => (
-          <ItemRow key={w.id}
-            left={<>
-              <p className="text-sm font-semibold text-gray-900">{w.title}</p>
-              <p className="font-mono text-xs text-gray-400">{new Date(w.published_at).toLocaleDateString()}</p>
-            </>}
-            right={<>
-              <Btn color="blue" variant="ghost" onClick={() => startEdit(w)}>Edit</Btn>
-              <Btn color="red" variant="ghost" onClick={() => remove(w.id)}>Delete</Btn>
-            </>}
-          />
+          <div key={w.id} className="bg-white dark:bg-[#1C1C1E] rounded-lg border border-gray-100 dark:border-gray-800">
+            <div className="px-4 py-3 flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  {w.content && <span className="inline-block font-mono text-[9px] text-google-yellow bg-yellow-50 dark:bg-yellow-950/30 px-1.5 py-0.5 rounded">internal</span>}
+                  {w.medium_url && <span className="inline-block font-mono text-[9px] text-gray-400 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded">medium</span>}
+                </div>
+                <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{w.title}</p>
+                <p className="font-mono text-xs text-gray-400">{new Date(w.published_at).toLocaleDateString()}</p>
+              </div>
+              <div className="flex gap-2 shrink-0">
+                <Btn color="yellow" variant="ghost" onClick={() => setExpandedComments(expandedComments === w.id ? null : w.id)}>
+                  {expandedComments === w.id ? "Hide comments" : "Comments"}
+                </Btn>
+                <Btn color="blue" variant="ghost" onClick={() => startEdit(w)}>Edit</Btn>
+                <Btn color="red" variant="ghost" onClick={() => remove(w.id)}>Delete</Btn>
+              </div>
+            </div>
+            {expandedComments === w.id && <CommentsPanel writingId={w.id} password={password} />}
+          </div>
         ))}
         {list.length === 0 && <p className="text-sm text-gray-400 italic">No writings yet.</p>}
       </div>

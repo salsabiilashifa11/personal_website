@@ -15,10 +15,22 @@ func GetWritings(c *gin.Context) {
 	c.JSON(http.StatusOK, writings)
 }
 
+func GetWriting(c *gin.Context) {
+	id := c.Param("id")
+	var writing models.Writing
+	if result := database.DB.First(&writing, id); result.Error != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Writing not found"})
+		return
+	}
+	c.JSON(http.StatusOK, writing)
+}
+
 func CreateWriting(c *gin.Context) {
 	var body struct {
 		Title       string `json:"title" binding:"required"`
-		MediumURL   string `json:"medium_url" binding:"required"`
+		Content     string `json:"content"`
+		MediumURL   string `json:"medium_url"`
+		CoverImage  string `json:"cover_image"`
 		PublishedAt string `json:"published_at"`
 	}
 	if err := c.ShouldBindJSON(&body); err != nil {
@@ -35,7 +47,9 @@ func CreateWriting(c *gin.Context) {
 
 	writing := models.Writing{
 		Title:       body.Title,
+		Content:     body.Content,
 		MediumURL:   body.MediumURL,
+		CoverImage:  body.CoverImage,
 		PublishedAt: publishedAt,
 	}
 	database.DB.Create(&writing)
@@ -52,7 +66,9 @@ func UpdateWriting(c *gin.Context) {
 
 	var body struct {
 		Title       string `json:"title"`
+		Content     string `json:"content"`
 		MediumURL   string `json:"medium_url"`
+		CoverImage  string `json:"cover_image"`
 		PublishedAt string `json:"published_at"`
 	}
 	if err := c.ShouldBindJSON(&body); err != nil {
@@ -63,16 +79,20 @@ func UpdateWriting(c *gin.Context) {
 	if body.Title != "" {
 		writing.Title = body.Title
 	}
-	if body.MediumURL != "" {
-		writing.MediumURL = body.MediumURL
-	}
+	// Content can be cleared, so always update it
+	writing.Content = body.Content
+	writing.MediumURL = body.MediumURL
+	writing.CoverImage = body.CoverImage
 	if body.PublishedAt != "" {
 		if t, err := time.Parse("2006-01-02", body.PublishedAt); err == nil {
 			writing.PublishedAt = t
 		}
 	}
 
-	database.DB.Save(&writing)
+	if result := database.DB.Save(&writing); result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+		return
+	}
 	c.JSON(http.StatusOK, writing)
 }
 

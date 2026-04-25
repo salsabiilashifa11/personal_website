@@ -21,6 +21,7 @@ func Init(dbPath string) {
 		&models.About{},
 		&models.Experience{},
 		&models.Writing{},
+		&models.WritingComment{},
 		&models.Book{},
 		&models.Recommendation{},
 		&models.DrummingMedia{},

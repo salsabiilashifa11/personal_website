@@ -94,36 +94,36 @@ export default async function HomePage() {
       {/* Interests */}
       {interestItems.length > 0 && (
         <section id="interests">
-          <SectionLabel color="text-google-yellow">Interests</SectionLabel>
+          <SectionLabel color="text-google-green">Interests</SectionLabel>
           <InterestChips items={interestItems} />
         </section>
       )}
 
       {/* Experiences */}
       <section id="experience">
-        <SectionLabel color="text-google-green">Experience</SectionLabel>
+        <SectionLabel color="text-google-yellow">Experience</SectionLabel>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-10">
           <div className="space-y-4">
-            <span className="inline-block font-mono text-xs text-google-blue bg-blue-50 dark:bg-blue-950/40 px-2 py-1 rounded">
+            <span className="inline-block font-mono text-xs text-google-yellow bg-yellow-50 dark:bg-yellow-950/40 px-2 py-1 rounded">
               Professional
             </span>
             {professional.length === 0 ? (
               <p className="text-sm text-gray-400 italic">Nothing here yet.</p>
             ) : (
               professional.map((exp) => (
-                <ExperienceCard key={exp.id} experience={exp} accentColor="blue" />
+                <ExperienceCard key={exp.id} experience={exp} accentColor="yellow" />
               ))
             )}
           </div>
           <div className="space-y-4">
-            <span className="inline-block font-mono text-xs text-google-red bg-red-50 dark:bg-red-950/40 px-2 py-1 rounded">
+            <span className="inline-block font-mono text-xs text-google-yellow bg-yellow-50 dark:bg-yellow-950/40 px-2 py-1 rounded">
               Education
             </span>
             {education.length === 0 ? (
               <p className="text-sm text-gray-400 italic">Nothing here yet.</p>
             ) : (
               education.map((exp) => (
-                <ExperienceCard key={exp.id} experience={exp} accentColor="red" />
+                <ExperienceCard key={exp.id} experience={exp} accentColor="yellow" />
               ))
             )}
           </div>

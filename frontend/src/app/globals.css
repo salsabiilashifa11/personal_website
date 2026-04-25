@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+body {
+  overflow-x: hidden;
+}
+
 
 @keyframes secret-typing-14 {
   from { width: 0 }

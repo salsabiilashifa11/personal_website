@@ -22,8 +22,19 @@ export interface Experience {
 export interface Writing {
   id: number;
   title: string;
-  medium_url: string;
+  content: string;      // Markdown body; empty string if none
+  medium_url: string;   // optional external link
+  cover_image: string;  // optional cover image URL
+  likes: number;
   published_at: string;
+  created_at: string;
+}
+
+export interface WritingComment {
+  id: number;
+  writing_id: number;
+  name: string;
+  content: string;
   created_at: string;
 }
 
@@ -108,6 +119,23 @@ async function fetchJSON<T>(path: string, options?: RequestInit): Promise<T> {
 export const getAbout = () => fetchJSON<About>("/about");
 export const getExperiences = () => fetchJSON<Experience[]>("/experiences");
 export const getWritings = () => fetchJSON<Writing[]>("/writings");
+export const getWriting = (id: number | string) => fetchJSON<Writing>(`/writings/${id}`);
+export const likeWriting = (id: number | string) =>
+  fetchJSON<{ likes: number }>(`/writings/${id}/like`, { method: "POST" });
+export const unlikeWriting = (id: number | string) =>
+  fetchJSON<{ likes: number }>(`/writings/${id}/like`, { method: "DELETE" });
+export const getComments = (id: number | string) =>
+  fetchJSON<WritingComment[]>(`/writings/${id}/comments`);
+export const createComment = (id: number | string, data: { name: string; content: string }) =>
+  fetchJSON<WritingComment>(`/writings/${id}/comments`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+export const deleteComment = (password: string, id: number) =>
+  fetchJSON<{ message: string }>(`/comments/${id}`, {
+    method: "DELETE",
+    headers: { "X-Admin-Password": password },
+  });
 export const getBooks = () => fetchJSON<BooksGrouped>("/books");
 export const getPapers = () => fetchJSON<PapersGrouped>("/papers");
 export const getDrummingMedia = () => fetchJSON<DrummingMedia[]>("/drumming");
@@ -163,14 +191,14 @@ export const deleteExperience = (password: string, id: number) =>
     headers: adminHeaders(password),
   });
 
-export const createWriting = (password: string, data: { title: string; medium_url: string; published_at: string }) =>
+export const createWriting = (password: string, data: { title: string; content: string; medium_url: string; cover_image: string; published_at: string }) =>
   fetchJSON<Writing>("/writings", {
     method: "POST",
     headers: adminHeaders(password),
     body: JSON.stringify(data),
   });
 
-export const updateWriting = (password: string, id: number, data: { title?: string; medium_url?: string; published_at?: string }) =>
+export const updateWriting = (password: string, id: number, data: { title?: string; content?: string; medium_url?: string; cover_image?: string; published_at?: string }) =>
   fetchJSON<Writing>(`/writings/${id}`, {
     method: "PUT",
     headers: adminHeaders(password),

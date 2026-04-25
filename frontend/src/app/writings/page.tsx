@@ -1,10 +1,11 @@
 import WritingCard from "@/components/WritingCard";
 import { getWritings } from "@/lib/api";
 
-export const revalidate = 60;
+export const revalidate = 0;
 
 export default async function WritingsPage() {
   const writings = await getWritings().catch(() => []);
+  const [featured, ...rest] = writings;
 
   return (
     <div>
@@ -20,10 +21,20 @@ export default async function WritingsPage() {
           <p className="text-sm text-gray-400">Migrating writings — coming soon.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {writings.map((writing) => (
-            <WritingCard key={writing.id} writing={writing} />
-          ))}
+        <div className="space-y-6">
+          {featured && <WritingCard writing={featured} featured />}
+
+          {rest.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {rest.map((writing) => (
+                <WritingCard key={writing.id} writing={writing} />
+              ))}
+            </div>
+          ) : (
+            <p className="font-mono text-[11px] text-gray-400 dark:text-gray-600 tracking-wide">
+              — more writings migrating in progress...
+            </p>
+          )}
         </div>
       )}
     </div>

@@ -29,6 +29,21 @@ const config: Config = {
       transitionProperty: {
         "shadow-transform": "box-shadow, transform",
       },
+      keyframes: {
+        pop: {
+          "0%":   { transform: "scale(0.8)", opacity: "0.5" },
+          "60%":  { transform: "scale(1.15)" },
+          "100%": { transform: "scale(1)", opacity: "1" },
+        },
+        fadeSlideIn: {
+          "from": { opacity: "0", transform: "translateY(6px)" },
+          "to":   { opacity: "1", transform: "translateY(0)" },
+        },
+      },
+      animation: {
+        pop: "pop 0.2s ease-out",
+        fadeSlideIn: "fadeSlideIn 0.25s ease-out both",
+      },
     },
   },
   plugins: [],

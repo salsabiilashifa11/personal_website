@@ -57,7 +57,7 @@ function Description({ text }: { text: string }) {
       {bullets.length > PREVIEW_COUNT && (
         <button
           onClick={() => setExpanded(v => !v)}
-          className="mt-1.5 font-mono text-[11px] text-google-blue hover:underline"
+          className="mt-1.5 font-mono text-[11px] text-google-yellow hover:underline"
         >
           {expanded ? "show less" : `+${bullets.length - PREVIEW_COUNT} more`}
         </button>
