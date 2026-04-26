@@ -31,7 +31,7 @@ function MovieCard({ movie }: { movie: Movie }) {
             {movie.year && <span className="font-mono text-xs text-purple-500">{movie.year}</span>}
           </div>
           {movie.director && (
-            <p className="font-mono text-xs text-gray-500 mb-1">dir. {movie.director}</p>
+            <p className="font-mono text-xs text-gray-500 mb-1">{movie.director}</p>
           )}
           {movie.description && (
             <p className="font-mono text-xs text-gray-400 leading-relaxed line-clamp-3">{movie.description}</p>

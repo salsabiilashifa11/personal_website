@@ -107,7 +107,7 @@ export default function WritingRenderer({ content }: Props) {
     ),
     blockquote: ({ children }) => (
       <blockquote className="flex gap-3 items-start bg-blue-50 border border-blue-200 dark:bg-blue-950/40 dark:border-blue-800 rounded-lg px-4 py-3 my-6">
-        <span className="text-google-blue text-base shrink-0 mt-0.5">ℹ️</span>
+        <span className="text-google-blue text-xl shrink-0 mt-0.5">💬</span>
         <div className="font-sans text-[15px] leading-[1.75] text-gray-600 dark:text-gray-400">
           {children}
         </div>
