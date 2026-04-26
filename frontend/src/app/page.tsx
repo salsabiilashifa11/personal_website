@@ -21,7 +21,10 @@ export default async function HomePage() {
     : ["software engineer", "curious human"];
 
   const interestItems = about.interests
-    ? about.interests.split("\n").map((s) => s.trim()).filter(Boolean)
+    ? about.interests.split("\n").map((s) => s.trim()).filter(Boolean).map((s) => {
+        const [label, icon] = s.split("|").map((p) => p.trim());
+        return { label, icon: icon || undefined };
+      })
     : [];
 
   return (

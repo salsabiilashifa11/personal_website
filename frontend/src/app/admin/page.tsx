@@ -163,7 +163,7 @@ function AboutTab({ password }: { password: string }) {
       </FormCard>
 
       <FormCard title="Interests" color="text-google-blue">
-        <p className="text-xs text-gray-400 mb-3">One interest per line — shown as colored chips on the home page.</p>
+        <p className="text-xs text-gray-400 mb-3">One interest per line. Optionally add a Lucide icon name after a pipe: <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">Label | IconName</code> (e.g. <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">Information Retrieval | Search</code>). Browse icons at lucide.dev.</p>
         <textarea
           className={`${textareaCls} h-32 mb-4 font-mono`}
           value={interests}
